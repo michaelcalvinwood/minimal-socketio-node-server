@@ -14,9 +14,18 @@ app.use(express.static('public'));
 app.use(express.json({limit: '200mb'})); 
 app.use(cors());
 
+
+/*
+ * REST Endpoints
+ */
+
 app.get('/', (req, res) => {
     res.send('Hello, World!');
 });
+
+/*
+ * HTTPS Express Server
+ */
 
 const httpsServer = https.createServer({
     key: fs.readFileSync(privateKeyPath),
@@ -27,21 +36,13 @@ const httpsServer = https.createServer({
     console.log(`HTTPS Server running on port ${LISTEN_PORT}`);
 });
 
+/*
+ * SocketIo Server
+ */
 
+const io = require('socket.io')(httpsServer, {cors: {origin: "*"}});
 
-
-
-// io.on('connection', (socket) => {
-//   console.log(socket.request.session);
-//   if(socket.request.session.name !== undefined){
-//     socket.emit('name', socket.request.session.name); // notice socket.io has access to session.name
-//     io.emit('event', socket.request.session.name + ' has joined!');
-//   }
-
-
-//   socket.on('name', (name) => {
-//     socket.request.session.name = name; // add name to the session object
-//     socket.request.session.save(); // save the session object to persist through other requests
-//     socket.broadcast.emit('event', name + ' says hello!');
-//   });
-// });
+io.on('connection', (socket) => {
+  console.log('socketio connection', socket.id);
+  socket.on('echo', (msg) => socket.emit('echo', msg));
+});
